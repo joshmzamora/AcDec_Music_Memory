@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Music Memory Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      color: #eee;
+    }
+
+    #controls,
+    #game {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 6px;
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #333;
+    }
+
+    #progress-container {
+      width: 80%;
+      height: 10px;
+      background: #333;
+      margin: 10px auto;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    #progress {
+      width: 0%;
+      height: 100%;
+      background: lime;
+    }
+
+    #answer-bank button {
+      background: #444;
+      margin: 3px;
+    }
+
+    #status {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Ac Dec Music Memory Quiz :o</h1>
+  <div>
+    <button onclick="setMode('easy')">Easy Mode</button>
+    <button onclick="setMode('hard')">Hard Mode</button>
+  </div>
+
+  <div id="game">
+    <button onclick="nextSong()">Next Song</button>
+    <button onclick="repeatSnippet()">Repeat</button><br>
+
+    <div id="controls">
+      <button onclick="togglePlay()">▶️/⏸</button>
+      <div id="progress-container">
+        <div id="progress"></div>
+      </div>
+    </div>
+
+    <div id="hard-input">
+      <input type="text" id="guess" placeholder="Type your guess">
+      <button onclick="submitGuess()">Submit Guess</button>
+    </div>
+
+    <div id="answer-bank"></div>
+
+    <div id="feedback"></div>
+    <div id="score"></div>
+  </div>
+
+  <div id="status">Idle</div>
+
+  <audio id="player"></audio>
+
+  <script>
+    // Your songs list (put MP3 files in /songs/ folder)
+   let songs = [
+      { title: "“Lost Your Head Blues”", artist: "Bessie Smith", year: "1926", file: "songs/[BessieSmithVEVO] Bessie Smith - Lost Your Head Blues (Audio).mp3" },
+      { title: "“Dippermouth Blues”", artist: "King Oliver", year: "1923", file: "songs/[Juan Fecit] King Olivers Creole Jazz Band - Dipper Mouth Blues (1923).mp3" },
+      { title: "“Hotter Than That”", artist: "Lillian Hardin Armstrong (perf’d by the Hot Five)", year: "1927", file: "songs/[Classic Mood Experience] Louis Armstrong & His Hot Five - Hotter Than That [1927].mp3" },
+      { title: "“The Stampede”", artist: "Fletcher Henderson", year: "1926", file: "songs/[Fletcher Henderson - Topic] The Stampede (Remastered).mp3" },
+      { title: "Running’ Wild, “The Charleston”", artist: "James P. Johnson (perf’d by Arthur Gibbs)", year: "1923", file: "songs/[warholsoup100] Arthur Gibbs & His Gang - The Charleston 1923 Runnin Wild 1st Recording.mp3" },
+      { title: "No, No, Nanette “Tea for Two”", artist: "Vincent Youmans (perf’d by Marion Harris)", year: "1925", file: "songs/[warholsoup100] Marion Harris - Tea For Two 1925 From No, No Nanette.mp3" },
+      { title: "Show Boat “Can’t Help Lovin’ Dat Man”", artist: "Jerome Kern (perf’d by Helen Morgan)", year: "1927", file: "songs/Cant Help Lovin Dat Man - Helen Morgan.mp3" },
+      { title: "“Sweet Georgia Brown”", artist: "Ben Bernie & Maceo Pinkard (first recording: Ben Bernie)", year: "1925", file: "songs/Sweet Georgia Brown - Ben Bernie (1925 instrumental).mp3" },
+      { title: "The Jazz Singer “Toot, Toot, Tootsie! (Goo’ Bye)”", artist: "Kahn/Erman/ Russo (perf’d by Al Jolson)", year: "1923/1927", file: "songs/[Al Jolson - Topic] Toot, Toot, Tootsie! (Goobye).mp3" },
+      { title: "La création du monde, Overture & Tableau I", artist: "Darius Milhaud (perf’d by Bernstein)", year: "1922-23", file: "songs/[Leonard Bernstein] La Cration du monde Op. 81a.mp3" },
+      { title: "Rhapsody in Blue", artist: "Gershwin (perf’d by Bernstein)", year: "1924/1942", file: "songs/[Columbia Symphony Orchest] Rhapsody in Blue.mp3" },
+      { title: "Music for the Theatre, Mvt. IV: “Burlesque”", artist: "Aaron Copland (perf’d by Bernstein)", year: "1924", file: "songs/[Leonard Bernstein] Music for the Theatre Suite: IV. Burlesque.mp3" },
+      { title: "Violin Sonata No. 2, Mvt. 2: “Blues”", artist: "Maurice Ravel (perf’d by Renaud Capuçon)", year: "1927", file: "songs/Violin Sonata No. 2 in G Major. Moderato.mp3" },
+      { title: "Sicilienne", artist: "Germaine Tailleferre (perf’d by Quynh Ngyuen)", year: "1928", file: "songs/[Quynh Nguyen - Topic] Sicilienne.mp3" }
+    ];
+
+    let mode = "hard";
+    let audio = document.getElementById("player");
+    let currentSong = null;
+    let score = 0, total = 0;
+    let snippetStart = 0, snippetEnd = 0;
+    let progressInterval;
+
+    function setMode(selected) {
+      mode = selected;
+      document.getElementById("answer-bank").style.display = (mode === "easy") ? "block" : "none";
+      document.getElementById("hard-input").style.display = (mode === "hard") ? "block" : "none";
+      renderAnswerBank();
+    }
+
+    function renderAnswerBank() {
+      const bank = document.getElementById("answer-bank");
+      bank.innerHTML = "";
+      if (mode === "easy") {
+        songs.forEach(song => {
+          let btn = document.createElement("button");
+          btn.textContent = song.title;
+          btn.onclick = () => submitGuess(song.title);
+          bank.appendChild(btn);
+        });
+      }
+    }
+
+    function nextSong() {
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("guess").value = "";
+      currentSong = songs[Math.floor(Math.random() * songs.length)];
+      total++;
+
+      audio.src = currentSong.file;
+      audio.load();
+
+      // pick random snippet
+      audio.onloadedmetadata = () => {
+        let duration = audio.duration;
+        snippetStart = Math.max(0, Math.floor(Math.random() * (duration - 15)));
+        snippetEnd = snippetStart + 15;
+        audio.currentTime = snippetStart;
+        audio.play();
+        updateStatus("🎵 Now Playing...");
+        trackProgress();
+      };
+    }
+
+    function repeatSnippet() {
+      if (currentSong) {
+        audio.currentTime = snippetStart;
+        audio.play();
+        updateStatus("🎵 Now Playing...");
+        trackProgress();
+      }
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+        updateStatus("🎵 Now Playing...");
+      } else {
+        audio.pause();
+        updateStatus("⏸ Paused");
+      }
+    }
+
+    function trackProgress() {
+      clearInterval(progressInterval);
+      let bar = document.getElementById("progress");
+      progressInterval = setInterval(() => {
+        if (!audio.paused) {
+          let pct = ((audio.currentTime - snippetStart) / (snippetEnd - snippetStart)) * 100;
+          bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
+          if (audio.currentTime >= snippetEnd) {
+            audio.pause();
+            clearInterval(progressInterval);
+            updateStatus("✅ Snippet Ended");
+          }
+        }
+      }, 200);
+    }
+
+    function submitGuess(inputGuess = null) {
+      let guess = inputGuess || document.getElementById("guess").value.trim();
+      let feedback = document.getElementById("feedback");
+      if (!guess) {
+        feedback.textContent = "❌ Enter a guess!";
+        feedback.style.color = "red";
+        return;
+      }
+
+      let normalizedGuess = guess.toLowerCase();
+      let normalizedAnswer = currentSong.title.toLowerCase();
+
+      if (levenshtein(normalizedGuess, normalizedAnswer) <= 3) {
+        score++;
+        feedback.textContent = "✅ Correct! Answer: " + currentSong.title;
+        feedback.style.color = "lime";
+      } else {
+        feedback.textContent = "❌ Incorrect! Answer: " + currentSong.title;
+        feedback.style.color = "red";
+      }
+      document.getElementById("score").textContent = `Score: ${score}/${total}`;
+    }
+
+    function updateStatus(text) {
+      let status = document.getElementById("status");
+      status.textContent = text;
+    }
+
+    // Simple Levenshtein distance for "close enough" guesses
+    function levenshtein(a, b) {
+      const m = [];
+      for (let i = 0; i <= b.length; i++) m[i] = [i];
+      for (let j = 0; j <= a.length; j++) m[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          m[i][j] = b.charAt(i - 1) == a.charAt(j - 1) ?
+            m[i - 1][j - 1] :
+            Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
+        }
+      }
+      return m[b.length][a.length];
+    }
+
+    // Start in Hard Mode
+    setMode("hard");
+  </script>
+</body>
+
+</html>
