@@ -331,6 +331,12 @@
           return;
         }
 
+        // Stop the music and clear the progress bar
+        audio.pause();
+        clearInterval(progressInterval);
+        document.getElementById("progress").style.width = "0%";
+        updateStatus("Idle");
+
         let normalizedGuess = guess.toLowerCase();
         let normalizedAnswer = currentSong.title.toLowerCase();
 
@@ -345,6 +351,15 @@
         document.getElementById(
           "score"
         ).textContent = `Score: ${score}/${total}`;
+
+        // Automatically go to the next song after 2 seconds
+        // We use total-1 here because total was incremented in nextSong()
+        if (total < songs.length) {
+          setTimeout(nextSong, 2000);
+        } else {
+          // Optional: Show a final score message if all songs have been played
+          feedback.textContent += " — Quiz Finished!";
+        }
       }
 
       function updateStatus(text) {
