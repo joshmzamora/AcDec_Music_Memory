@@ -5,12 +5,6 @@
     <meta charset="UTF-8" />
     <title>Music Memory Quiz</title>
     <style>
-      #overlay-feedback {
-        display: none;
-      }
-
-      #feedback {
-      }
       body {
         font-family: Arial, sans-serif;
         text-align: center;
@@ -71,37 +65,63 @@
         left: 10px;
         font-size: 14px;
       }
+
+      /* Overlay feedback (PC + Mobile) */
+      #overlay-feedback {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      #feedback {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 90%;
+        line-height: 1.3;
+      }
+
       @media (max-width: 600px) {
         body {
-          padding: 10px; /* Less padding on the edges */
+          padding: 10px;
         }
 
         #progress-container {
-          width: 95%; /* Take up more screen width on mobile */
+          width: 95%;
         }
 
         input {
-          width: 90%; /* Make input fields nearly full width */
-          box-sizing: border-box; /* Ensures padding is included in the 90% width */
+          width: 90%;
+          box-sizing: border-box;
         }
 
         button {
-          /* Make standard buttons slightly larger and ensure they are 
-                   still easy to press when stacked. */
           padding: 15px 25px;
           font-size: 1.1em;
-          display: block; /* Force all control buttons to stack vertically */
-          width: 90%; /* Make them full width for easy tapping */
-          margin: 10px auto; /* Add space between stacked buttons */
+          display: block;
+          width: 90%;
+          margin: 10px auto;
         }
 
-        /* Overrides for the answer bank buttons to keep them inline */
         #answer-bank button {
-          display: inline-block; /* Keep the answer bank buttons side-by-side */
+          display: inline-block;
           width: auto;
-          padding: 12px 18px; /* Slightly more compact than control buttons */
+          padding: 12px 18px;
           margin: 4px;
-          font-size: 0.9em; /* Smaller font for better fit in the bank */
+          font-size: 0.9em;
         }
 
         #status {
@@ -110,35 +130,8 @@
           left: 5px;
         }
 
-        #overlay-feedback {
-          position: fixed; /* Fixes it to the viewport */
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(
-            0,
-            0,
-            0,
-            0.85
-          ); /* Semi-transparent black backdrop */
-          display: flex; /* Centers the content */
-          justify-content: center;
-          align-items: center;
-          z-index: 1000; /* Ensures it sits on top of everything */
-          /* Start with opacity 0 and use JS to fade it in */
-          opacity: 0;
-          pointer-events: none; /* Allows clicks to pass through when hidden */
-          transition: opacity 0.3s ease-in-out; /* Smooth transition */
-        }
-
         #feedback {
-          /* Make the text much larger and bold for the overlay */
-          font-size: 2.5em;
-          font-weight: bold;
-          padding: 20px;
-          border-radius: 10px;
-          background-color: transparent; /* Text only, no background box */
+          font-size: 1.8em;
         }
       }
     </style>
@@ -180,92 +173,25 @@
     <audio id="player"></audio>
 
     <script>
-      // Your songs list (put MP3 files in /songs/ folder)
+      // Songs list (make sure MP3s exist in /songs/)
       let songs = [
+        { title: "Lost Your Head Blues", file: "songs/lost.mp3" },
+        { title: "Dippermouth Blues", file: "songs/dippermouth.mp3" },
+        { title: "Hotter Than That", file: "songs/hotter.mp3" },
+        { title: "The Stampede", file: "songs/stampede.mp3" },
+        { title: "The Charleston", file: "songs/charleston.mp3" },
+        { title: "Tea for Two", file: "songs/tea.mp3" },
+        { title: "Can’t Help Lovin’ Dat Man", file: "songs/canthelp.mp3" },
+        { title: "Sweet Georgia Brown", file: "songs/georgia.mp3" },
+        { title: "Toot, Toot, Tootsie!", file: "songs/tootsie.mp3" },
+        { title: "La création du monde", file: "songs/creation.mp3" },
+        { title: "Rhapsody in Blue", file: "songs/rhapsody.mp3" },
         {
-          title: "“Lost Your Head Blues”",
-          artist: "Bessie Smith",
-          year: "1926",
-          file: "songs/[BessieSmithVEVO] Bessie Smith - Lost Your Head Blues (Audio).mp3",
+          title: "Music for the Theatre – Burlesque",
+          file: "songs/burlesque.mp3",
         },
-        {
-          title: "“Dippermouth Blues”",
-          artist: "King Oliver",
-          year: "1923",
-          file: "songs/[Juan Fecit] King Olivers Creole Jazz Band - Dipper Mouth Blues (1923).mp3",
-        },
-        {
-          title: "“Hotter Than That”",
-          artist: "Lillian Hardin Armstrong (perf’d by the Hot Five)",
-          year: "1927",
-          file: "songs/[Classic Mood Experience] Louis Armstrong & His Hot Five - Hotter Than That [1927].mp3",
-        },
-        {
-          title: "“The Stampede”",
-          artist: "Fletcher Henderson",
-          year: "1926",
-          file: "songs/[Fletcher Henderson - Topic] The Stampede (Remastered).mp3",
-        },
-        {
-          title: "Running’ Wild, “The Charleston”",
-          artist: "James P. Johnson (perf’d by Arthur Gibbs)",
-          year: "1923",
-          file: "songs/[warholsoup100] Arthur Gibbs & His Gang - The Charleston 1923 Runnin Wild 1st Recording.mp3",
-        },
-        {
-          title: "No, No, Nanette “Tea for Two”",
-          artist: "Vincent Youmans (perf’d by Marion Harris)",
-          year: "1925",
-          file: "songs/[warholsoup100] Marion Harris - Tea For Two 1925 From No, No Nanette.mp3",
-        },
-        {
-          title: "Show Boat “Can’t Help Lovin’ Dat Man”",
-          artist: "Jerome Kern (perf’d by Helen Morgan)",
-          year: "1927",
-          file: "songs/Cant Help Lovin Dat Man - Helen Morgan.mp3",
-        },
-        {
-          title: "“Sweet Georgia Brown”",
-          artist: "Ben Bernie & Maceo Pinkard (first recording: Ben Bernie)",
-          year: "1925",
-          file: "songs/Sweet Georgia Brown - Ben Bernie (1925 instrumental).mp3",
-        },
-        {
-          title: "The Jazz Singer “Toot, Toot, Tootsie! (Goo’ Bye)”",
-          artist: "Kahn/Erman/ Russo (perf’d by Al Jolson)",
-          year: "1923/1927",
-          file: "songs/[Al Jolson - Topic] Toot, Toot, Tootsie! (Goobye).mp3",
-        },
-        {
-          title: "La création du monde, Overture & Tableau I",
-          artist: "Darius Milhaud (perf’d by Bernstein)",
-          year: "1922-23",
-          file: "songs/[Leonard Bernstein] La Cration du monde Op. 81a.mp3",
-        },
-        {
-          title: "Rhapsody in Blue",
-          artist: "Gershwin (perf’d by Bernstein)",
-          year: "1924/1942",
-          file: "songs/[Columbia Symphony Orchest] Rhapsody in Blue.mp3",
-        },
-        {
-          title: "Music for the Theatre, Mvt. IV: “Burlesque”",
-          artist: "Aaron Copland (perf’d by Bernstein)",
-          year: "1924",
-          file: "songs/[Leonard Bernstein] Music for the Theatre Suite: IV. Burlesque.mp3",
-        },
-        {
-          title: "Violin Sonata No. 2, Mvt. 2: “Blues”",
-          artist: "Maurice Ravel (perf’d by Renaud Capuçon)",
-          year: "1927",
-          file: "songs/Violin Sonata No. 2 in G Major. Moderato.mp3",
-        },
-        {
-          title: "Sicilienne",
-          artist: "Germaine Tailleferre (perf’d by Quynh Ngyuen)",
-          year: "1928",
-          file: "songs/[Quynh Nguyen - Topic] Sicilienne.mp3",
-        },
+        { title: "Violin Sonata No. 2 – Blues", file: "songs/violin.mp3" },
+        { title: "Sicilienne", file: "songs/sicilienne.mp3" },
       ];
 
       let mode = "hard";
@@ -300,7 +226,6 @@
       }
 
       function nextSong() {
-        document.getElementById("feedback").textContent = "";
         document.getElementById("guess").value = "";
         currentSong = songs[Math.floor(Math.random() * songs.length)];
         total++;
@@ -308,7 +233,6 @@
         audio.src = currentSong.file;
         audio.load();
 
-        // pick random snippet
         audio.onloadedmetadata = () => {
           let duration = audio.duration;
           snippetStart = Math.max(
@@ -363,14 +287,11 @@
 
       function submitGuess(inputGuess = null) {
         let guess = inputGuess || document.getElementById("guess").value.trim();
-        let feedback = document.getElementById("feedback");
         if (!guess) {
-          feedback.textContent = "❌ Enter a guess!";
-          feedback.style.color = "red";
+          showOverlay("❌ Enter a guess!", "red");
           return;
         }
 
-        // Stop the music and clear the progress bar
         audio.pause();
         clearInterval(progressInterval);
         document.getElementById("progress").style.width = "0%";
@@ -381,32 +302,24 @@
 
         if (levenshtein(normalizedGuess, normalizedAnswer) <= 3) {
           score++;
-          feedback.textContent = "✅ Correct! Answer: " + currentSong.title;
-          feedback.style.color = "lime";
+          showOverlay("✅ Correct! " + currentSong.title, "lime");
         } else {
-          feedback.textContent = "❌ Incorrect! Answer: " + currentSong.title;
-          feedback.style.color = "red";
+          showOverlay("❌ Incorrect! " + currentSong.title, "red");
         }
-         showOverlay(); 
 
         document.getElementById(
           "score"
         ).textContent = `Score: ${score}/${total}`;
 
-        // Automatically go to the next song after 2 seconds
-        // We use total-1 here because total was incremented in nextSong()
         if (total < songs.length) {
           setTimeout(nextSong, 2000);
-          setTimeout(hideOverlay, 2000); // Hide overlay after 2 seconds
-        } 
+        }
       }
 
       function updateStatus(text) {
-        let status = document.getElementById("status");
-        status.textContent = text;
+        document.getElementById("status").textContent = text;
       }
 
-      // Simple Levenshtein distance for "close enough" guesses
       function levenshtein(a, b) {
         const m = [];
         for (let i = 0; i <= b.length; i++) m[i] = [i];
@@ -426,22 +339,28 @@
         return m[b.length][a.length];
       }
 
-      function showOverlay() {
+      // Overlay with click-to-dismiss
+      document
+        .getElementById("overlay-feedback")
+        .addEventListener("click", hideOverlay);
+
+      function showOverlay(message, color = "white") {
         const overlay = document.getElementById("overlay-feedback");
-        // Only show if the mobile styles (opacity transition) are present
-        if (window.getComputedStyle(overlay).display !== "none") {
-          overlay.style.opacity = 1;
-          overlay.style.pointerEvents = "auto"; // Re-enable pointer events
-        }
+        const feedback = document.getElementById("feedback");
+        feedback.textContent = message;
+        feedback.style.color = color;
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = "auto";
+        setTimeout(hideOverlay, 2000); // auto-hide
       }
 
       function hideOverlay() {
         const overlay = document.getElementById("overlay-feedback");
-        overlay.style.opacity = 0;
-        overlay.style.pointerEvents = "none"; // Disable pointer events
+        overlay.style.opacity = "0";
+        overlay.style.pointerEvents = "none";
       }
-      // Start in Hard Mode
-      setMode("hard");
+
+      setMode("hard"); // start in Hard mode
     </script>
   </body>
 </html>
