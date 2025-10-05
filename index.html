@@ -1,620 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="UTF-8" />
-    <title>Music Memory Quiz</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding: 20px;
-        background: #111;
-        color: #eee;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        box-sizing: border-box;
-      }
-
-      /* NEW: Styles for different screens */
-      #start-screen,
-      #end-screen {
-        max-width: 500px;
-      }
-      #end-screen ul {
-        list-style: none;
-        padding: 0;
-        text-align: left;
-        background: #222;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-      }
-      #end-screen li {
-        margin-bottom: 8px;
-        font-size: 0.9em;
-      }
-
-      #controls,
-      #game-screen {
-        margin-top: 20px;
-      }
-
-      button {
-        padding: 12px 20px;
-        margin: 8px;
-        border: none;
-        border-radius: 8px;
-        background: #28a745;
-        color: white;
-        cursor: pointer;
-        font-size: 1em;
-        transition: background-color 0.2s;
-      }
-      button:hover:not(:disabled) {
-        background: #218838;
-      }
-      /* NEW: Disabled button state */
-      button:disabled {
-        background-color: #555;
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-
-      /* NEW: Style for secondary buttons */
-      button.secondary {
-        background-color: #007bff;
-      }
-      button.secondary:hover:not(:disabled) {
-        background-color: #0069d9;
-      }
-      button.tertiary {
-        background-color: #dc3545;
-      }
-      button.tertiary:hover:not(:disabled) {
-        background-color: #c82333;
-      }
-
-      input,
-      select {
-        padding: 10px;
-        margin: 5px;
-        border-radius: 6px;
-        border: 1px solid #333;
-        background: #222;
-        color: #eee;
-        width: 80%;
-        max-width: 300px;
-      }
-
-      #progress-container {
-        width: 80%;
-        height: 10px;
-        background: #333;
-        margin: 15px auto;
-        border-radius: 5px;
-        overflow: hidden;
-      }
-      #progress {
-        width: 0%;
-        height: 100%;
-        background: lime;
-      }
-
-      #answer-bank button {
-        background: #444;
-        margin: 4px;
-        display: inline-block;
-        width: auto;
-      }
-
-      #status {
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        font-size: 14px;
-        background: rgba(0, 0, 0, 0.5);
-        padding: 5px 8px;
-        border-radius: 5px;
-      }
-
-      /* NEW: Quiz progress indicator */
-      #quiz-progress {
-        font-size: 1.2em;
-        font-weight: bold;
-        margin: 15px 0;
-      }
-
-      #overlay-feedback {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease-in-out;
-      }
-      #feedback {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        text-align: center;
-        max-width: 90%;
-        line-height: 1.3;
-      }
-
-      @media (max-width: 600px) {
-        body {
-          padding: 10px;
-        }
-        #progress-container {
-          width: 95%;
-        }
-        input {
-          width: 90%;
-          box-sizing: border-box;
-        }
-        button {
-          padding: 15px;
-          font-size: 1.1em;
-          width: 90%;
-          margin: 10px auto;
-          display: block;
-        }
-        #answer-bank button,
-        #start-screen button {
-          display: inline-block;
-          width: auto;
-          padding: 12px 18px;
-          margin: 4px;
-          font-size: 0.9em;
-        }
-        #feedback {
-          font-size: 1.8em;
-        }
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎺 Ac Dec Music Memory Quiz</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="start-screen">
-      <h1>Ac Dec Music Memory Quiz :o</h1>
-      <p>Select your settings and start the quiz!</p>
-      <div>
-        <button onclick="setMode('easy')">Easy Mode</button>
-        <button onclick="setMode('hard')">Hard Mode</button>
-      </div>
-      <div>
-        <label for="snippet-length">Snippet Length:</label>
-        <select id="snippet-length">
+      <h1>🎙️ Ac Dec Music Memory Quiz 🎺</h1>
+      <p>Select Mode & Settings:</p>
+
+      <fieldset class="setting-group">
+        <legend>Game Mode</legend>
+        <div class="mode-options">
+          <button
+            onclick="setMode('easy')"
+            class="mode-btn selected"
+            id="easy-mode-btn"
+          >
+            Easy Mode (Word Bank)
+          </button>
+          <button onclick="setMode('hard')" class="mode-btn" id="hard-mode-btn">
+            Hard Mode (Typing)
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset class="setting-group">
+        <legend>Guess Options</legend>
+        <select id="quiz-type" aria-label="Guess Options">
+          <option value="title">Title Only</option>
+          <option value="artist">Artist Only</option>
+          <option value="both" selected>Title + Artist</option>
+        </select>
+      </fieldset>
+
+      <fieldset class="setting-group">
+        <legend>Snippet Length</legend>
+        <select id="snippet-length" aria-label="Snippet Length">
           <option value="20">Easy (20s)</option>
           <option value="15" selected>Normal (15s)</option>
           <option value="5">Expert (5s)</option>
         </select>
-      </div>
-      <button id="start-btn" class="secondary" style="margin-top: 20px">
-        Start Quiz
-      </button>
+      </fieldset>
+
+      <button id="start-btn" onclick="startGame()">Start Quiz</button>
     </div>
 
     <div id="game-screen" style="display: none">
-      <div id="quiz-progress">Question 0 of 0</div>
+      <div class="top-bar">
+        <div id="progress-text">Question 0 of 0</div>
+        <div id="score">Score: 0</div>
+      </div>
 
       <div id="controls">
-        <button id="toggle-play-btn" onclick="togglePlay()">▶️/⏸</button>
-        <div id="progress-container">
-          <div id="progress"></div>
-        </div>
-      </div>
-
-      <button id="repeat-btn" onclick="repeatSnippet()">Repeat Snippet</button>
-      <button id="skip-btn" class="tertiary" onclick="skipSong()">
-        Skip Song</button
-      ><br />
-
-      <div id="hard-input">
-        <input type="text" id="guess" placeholder="Type your guess" />
-        <button id="submit-guess-btn" onclick="submitGuess()">
-          Submit Guess
+        <button onclick="nextSong()">Next Song</button>
+        <button onclick="repeatSnippet()">Repeat</button>
+        <button onclick="skipSong()">Skip</button>
+        <button onclick="showHint()">
+          Hint (<span id="hint-count">3</span>)
         </button>
-        <button id="hint-btn" onclick="showHint()">Hint</button>
-        <div
-          id="hints-remaining"
-          style="font-size: 0.9em; margin-top: 5px"
-        ></div>
       </div>
 
-      <div id="answer-bank"></div>
-      <div id="score" style="margin-top: 15px">Score: 0/0</div>
+      <div id="answer-area">
+        <div id="hard-input" class="input-container">
+          <input
+            type="text"
+            id="guess"
+            placeholder="Type your guess (Title or Artist)"
+          />
+          <button onclick="submitGuess()">Submit Guess</button>
+        </div>
+        <div id="answer-bank"></div>
+      </div>
+
+      <div id="progress-container"><div id="progress"></div></div>
+
+      <div id="overlay-feedback"><div id="feedback"></div></div>
+
+      <div id="status">Idle</div>
+      <audio id="player"></audio>
     </div>
 
     <div id="end-screen" style="display: none">
-      <h2>Quiz Complete!</h2>
-      <div id="final-score" style="font-size: 1.5em; margin-bottom: 20px"></div>
-      <h3>Review Missed Songs:</h3>
-      <ul id="missed-songs-list"></ul>
-      <button id="play-again-btn" class="secondary">Play Again</button>
+      <div id="final-score"></div>
+      <div id="review-answers"></div>
+      <button onclick="restartGame()">Play Again</button>
     </div>
 
-    <div id="overlay-feedback">
-      <div id="feedback"></div>
-    </div>
-    <div id="status">Idle</div>
-    <audio id="player"></audio>
-
-    <script>
-      // Songs list (make sure MP3s exist in /songs/)
-      let songs = [
-        { title: "Lost Your Head Blues", file: "songs/lost.mp3" },
-        { title: "Dippermouth Blues", file: "songs/dippermouth.mp3" },
-        { title: "Hotter Than That", file: "songs/hotter.mp3" },
-        { title: "The Stampede", file: "songs/stampede.mp3" },
-        { title: "The Charleston", file: "songs/charleston.mp3" },
-        { title: "Tea for Two", file: "songs/tea.mp3" },
-        { title: "Can’t Help Lovin’ Dat Man", file: "songs/canthelp.mp3" },
-        { title: "Sweet Georgia Brown", file: "songs/georgia.mp3" },
-        { title: "Toot, Toot, Tootsie!", file: "songs/tootsie.mp3" },
-        { title: "La création du monde", file: "songs/creation.mp3" },
-        { title: "Rhapsody in Blue", file: "songs/rhapsody.mp3" },
-        {
-          title: "Music for the Theatre – Burlesque",
-          file: "songs/burlesque.mp3",
-        },
-        { title: "Violin Sonata No. 2 – Blues", file: "songs/violin.mp3" },
-        { title: "Sicilienne", file: "songs/sicilienne.mp3" },
-      ];
-
-      // NEW: Game State Variables
-      let mode = "hard";
-      let shuffledSongs = [];
-      let currentSongIndex = 0;
-      let missedSongs = [];
-      let hintsRemaining = 3;
-      let snippetLength = 15;
-
-      let audio = document.getElementById("player");
-      let currentSong = null;
-      let score = 0;
-      let snippetStart = 0,
-        snippetEnd = 0;
-      let progressInterval;
-
-      // NEW: Web Audio API for sound feedback
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      function playFeedbackSound(isCorrect) {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // Volume
-        if (isCorrect) {
-          oscillator.type = "sine";
-          oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-        } else {
-          oscillator.type = "square";
-          oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3 note
-        }
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.2); // Duration of sound
-      }
-
-      function setMode(selected) {
-        mode = selected;
-        document.getElementById("answer-bank").style.display =
-          mode === "easy" ? "block" : "none";
-        document.getElementById("hard-input").style.display =
-          mode === "hard" ? "block" : "none";
-        document.getElementById("hint-btn").style.display =
-          mode === "hard" ? "inline-block" : "none";
-        document.getElementById("hints-remaining").style.display =
-          mode === "hard" ? "block" : "none";
-        console.log(`Mode set to ${mode}`);
-      }
-
-      function renderAnswerBank() {
-        const bank = document.getElementById("answer-bank");
-        bank.innerHTML = "";
-        if (mode === "easy") {
-          // In easy mode, create buttons for all possible answers
-          let allTitles = [...songs].sort(() => 0.5 - Math.random());
-          allTitles.forEach((song) => {
-            let btn = document.createElement("button");
-            btn.textContent = song.title;
-            btn.onclick = () => submitGuess(song.title);
-            bank.appendChild(btn);
-          });
-        }
-      }
-
-      // NEW: Start the quiz
-      function startGame() {
-        document.getElementById("start-screen").style.display = "none";
-        document.getElementById("game-screen").style.display = "block";
-        document.getElementById("end-screen").style.display = "none";
-
-        score = 0;
-        currentSongIndex = 0;
-        hintsRemaining = 3;
-        missedSongs = [];
-        snippetLength = parseInt(
-          document.getElementById("snippet-length").value,
-          10
-        );
-
-        // Shuffle songs for a new random order each quiz
-        shuffledSongs = [...songs].sort(() => 0.5 - Math.random());
-
-        setMode(mode); // Apply mode settings
-        renderAnswerBank();
-        updateScoreDisplay();
-        nextSong();
-      }
-
-      function nextSong() {
-        if (currentSongIndex >= shuffledSongs.length) {
-          displayEndScreen();
-          return;
-        }
-
-        setControlsDisabled(true); // Disable controls until song is loaded
-        document.getElementById("guess").value = "";
-        document.getElementById("hint-btn").disabled = false; // Re-enable hint button
-
-        currentSong = shuffledSongs[currentSongIndex];
-        currentSongIndex++;
-
-        updateScoreDisplay();
-        document.getElementById(
-          "quiz-progress"
-        ).textContent = `Question ${currentSongIndex} of ${shuffledSongs.length}`;
-        document.getElementById(
-          "hints-remaining"
-        ).textContent = `Hints: ${hintsRemaining}`;
-
-        audio.src = currentSong.file;
-        audio.load();
-
-        audio.onloadedmetadata = () => {
-          let duration = audio.duration;
-          snippetStart = Math.max(
-            0,
-            Math.floor(Math.random() * (duration - snippetLength))
-          );
-          snippetEnd = snippetStart + snippetLength;
-          audio.currentTime = snippetStart;
-          audio.play();
-          updateStatus("🎵 Now Playing...");
-          trackProgress();
-          setControlsDisabled(false); // Enable controls now that song is ready
-        };
-
-        audio.onerror = () => {
-          updateStatus("❌ Error loading song. Skipping.");
-          setTimeout(nextSong, 1500); // Auto-skip to next song on error
-        };
-      }
-
-      function repeatSnippet() {
-        if (currentSong) {
-          audio.currentTime = snippetStart;
-          audio.play();
-          updateStatus("🎵 Now Playing...");
-          trackProgress();
-        }
-      }
-
-      // NEW: Skip song function
-      function skipSong() {
-        if (!currentSong) return;
-        audio.pause();
-        clearInterval(progressInterval);
-        showOverlay(
-          `❌ Skipped! The answer was: ${currentSong.title}`,
-          "orange"
-        );
-        playFeedbackSound(false);
-        missedSongs.push(currentSong);
-        updateScoreDisplay(); // Show score update immediately
-        setTimeout(nextSong, 2000);
-      }
-
-      function togglePlay() {
-        if (audio.paused) {
-          audio.play();
-          updateStatus("🎵 Now Playing...");
-        } else {
-          audio.pause();
-          updateStatus("⏸ Paused");
-        }
-      }
-
-      function trackProgress() {
-        clearInterval(progressInterval);
-        let bar = document.getElementById("progress");
-        progressInterval = setInterval(() => {
-          if (!audio.paused) {
-            let pct =
-              ((audio.currentTime - snippetStart) /
-                (snippetEnd - snippetStart)) *
-              100;
-            bar.style.width = Math.min(100, Math.max(0, pct)) + "%";
-            if (audio.currentTime >= snippetEnd) {
-              audio.pause();
-              clearInterval(progressInterval);
-              updateStatus("✅ Snippet Ended");
-            }
-          }
-        }, 200);
-      }
-
-      function submitGuess(inputGuess = null) {
-        let guess = inputGuess || document.getElementById("guess").value.trim();
-        if (!guess) {
-          showOverlay("❌ Please enter a guess!", "red");
-          return;
-        }
-
-        setControlsDisabled(true); // Disable controls after guessing
-        audio.pause();
-        clearInterval(progressInterval);
-        document.getElementById("progress").style.width = "0%";
-        updateStatus("Idle");
-
-        let normalizedGuess = guess.toLowerCase().replace(/[^a-z0-9]/gi, "");
-        let normalizedAnswer = currentSong.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]/gi, "");
-
-        // Using Levenshtein distance for fuzzy matching
-        if (
-          levenshtein(normalizedGuess, normalizedAnswer) <= 3 ||
-          normalizedAnswer.includes(normalizedGuess)
-        ) {
-          score++;
-          showOverlay(`✅ Correct!<br>${currentSong.title}`, "lime");
-          playFeedbackSound(true);
-        } else {
-          showOverlay(
-            `❌ Incorrect!<br>The answer was: ${currentSong.title}`,
-            "red"
-          );
-          playFeedbackSound(false);
-          missedSongs.push(currentSong);
-        }
-
-        updateScoreDisplay();
-        setTimeout(nextSong, 2500); // Wait a bit longer to show feedback
-      }
-
-      // NEW: Show a hint
-      function showHint() {
-        if (hintsRemaining > 0) {
-          hintsRemaining--;
-          const firstLetter = currentSong.title.charAt(0);
-          showOverlay(`Hint: The title starts with "${firstLetter}"`, "cyan");
-          document.getElementById("hint-btn").disabled = true; // Only one hint per song
-          document.getElementById(
-            "hints-remaining"
-          ).textContent = `Hints: ${hintsRemaining}`;
-        } else {
-          showOverlay("No hints remaining!", "orange");
-        }
-      }
-
-      // NEW: Display the end screen
-      function displayEndScreen() {
-        document.getElementById("game-screen").style.display = "none";
-        document.getElementById("end-screen").style.display = "block";
-        updateStatus("Quiz Finished");
-
-        const percentage = ((score / shuffledSongs.length) * 100).toFixed(1);
-        document.getElementById(
-          "final-score"
-        ).innerHTML = `Final Score: ${score}/${shuffledSongs.length} (${percentage}%)`;
-
-        const missedList = document.getElementById("missed-songs-list");
-        missedList.innerHTML = "";
-        if (missedSongs.length === 0) {
-          missedList.innerHTML = "<li>🎉 You missed none! Perfect score!</li>";
-        } else {
-          missedSongs.forEach((song) => {
-            const li = document.createElement("li");
-            li.textContent = song.title;
-            missedList.appendChild(li);
-          });
-        }
-      }
-
-      function updateScoreDisplay() {
-        document.getElementById(
-          "score"
-        ).textContent = `Score: ${score}/${currentSongIndex}`;
-      }
-
-      function updateStatus(text) {
-        document.getElementById("status").textContent = text;
-      }
-
-      // NEW: Disable/Enable controls
-      function setControlsDisabled(isDisabled) {
-        document
-          .querySelectorAll("#game-screen button, #game-screen input")
-          .forEach((el) => {
-            el.disabled = isDisabled;
-          });
-      }
-
-      function levenshtein(a, b) {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
-
-        var matrix = [];
-
-        for (var i = 0; i <= b.length; i++) {
-          matrix[i] = [i];
-        }
-
-        for (var j = 0; j <= a.length; j++) {
-          matrix[0][j] = j;
-        }
-
-        for (i = 1; i <= b.length; i++) {
-          for (j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) == a.charAt(j - 1)) {
-              matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-              matrix[i][j] = Math.min(
-                matrix[i - 1][j - 1] + 1,
-                Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
-              );
-            }
-          }
-        }
-        return matrix[b.length][a.length];
-      }
-
-      document
-        .getElementById("overlay-feedback")
-        .addEventListener("click", hideOverlay);
-
-      function showOverlay(message, color = "white") {
-        const overlay = document.getElementById("overlay-feedback");
-        const feedback = document.getElementById("feedback");
-        feedback.innerHTML = message; // Use innerHTML to support <br> tags
-        feedback.style.color = color;
-        overlay.style.opacity = "1";
-        overlay.style.pointerEvents = "auto";
-        setTimeout(hideOverlay, 2500); // Auto-hide
-      }
-
-      function hideOverlay() {
-        const overlay = document.getElementById("overlay-feedback");
-        overlay.style.opacity = "0";
-        overlay.style.pointerEvents = "none";
-      }
-
-      // NEW: Event listeners for start and play again buttons
-      document.getElementById("start-btn").addEventListener("click", startGame);
-      document
-        .getElementById("play-again-btn")
-        .addEventListener("click", () => {
-          // Simply reload for the cleanest reset
-          window.location.reload();
-        });
-
-      // Initialize with Hard mode as default
-      setMode("hard");
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>
