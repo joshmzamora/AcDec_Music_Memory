@@ -11,43 +11,93 @@
         padding: 20px;
         background: #111;
         color: #eee;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+      }
+
+      /* NEW: Styles for different screens */
+      #start-screen,
+      #end-screen {
+        max-width: 500px;
+      }
+      #end-screen ul {
+        list-style: none;
+        padding: 0;
+        text-align: left;
+        background: #222;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+      #end-screen li {
+        margin-bottom: 8px;
+        font-size: 0.9em;
       }
 
       #controls,
-      #game {
+      #game-screen {
         margin-top: 20px;
       }
 
       button {
-        padding: 10px 15px;
-        margin: 5px;
+        padding: 12px 20px;
+        margin: 8px;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         background: #28a745;
         color: white;
         cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s;
       }
-
-      button:hover {
+      button:hover:not(:disabled) {
         background: #218838;
       }
+      /* NEW: Disabled button state */
+      button:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
 
-      input {
-        padding: 8px;
+      /* NEW: Style for secondary buttons */
+      button.secondary {
+        background-color: #007bff;
+      }
+      button.secondary:hover:not(:disabled) {
+        background-color: #0069d9;
+      }
+      button.tertiary {
+        background-color: #dc3545;
+      }
+      button.tertiary:hover:not(:disabled) {
+        background-color: #c82333;
+      }
+
+      input,
+      select {
+        padding: 10px;
         margin: 5px;
         border-radius: 6px;
         border: 1px solid #333;
+        background: #222;
+        color: #eee;
+        width: 80%;
+        max-width: 300px;
       }
 
       #progress-container {
         width: 80%;
         height: 10px;
         background: #333;
-        margin: 10px auto;
+        margin: 15px auto;
         border-radius: 5px;
         overflow: hidden;
       }
-
       #progress {
         width: 0%;
         height: 100%;
@@ -56,7 +106,9 @@
 
       #answer-bank button {
         background: #444;
-        margin: 3px;
+        margin: 4px;
+        display: inline-block;
+        width: auto;
       }
 
       #status {
@@ -64,9 +116,18 @@
         bottom: 10px;
         left: 10px;
         font-size: 14px;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 5px 8px;
+        border-radius: 5px;
       }
 
-      /* Overlay feedback (PC + Mobile) */
+      /* NEW: Quiz progress indicator */
+      #quiz-progress {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin: 15px 0;
+      }
+
       #overlay-feedback {
         position: fixed;
         top: 0;
@@ -82,7 +143,6 @@
         pointer-events: none;
         transition: opacity 0.3s ease-in-out;
       }
-
       #feedback {
         font-size: 2.5em;
         font-weight: bold;
@@ -98,78 +158,98 @@
         body {
           padding: 10px;
         }
-
         #progress-container {
           width: 95%;
         }
-
         input {
           width: 90%;
           box-sizing: border-box;
         }
-
         button {
-          padding: 15px 25px;
+          padding: 15px;
           font-size: 1.1em;
-          display: block;
           width: 90%;
           margin: 10px auto;
+          display: block;
         }
-
-        #answer-bank button {
+        #answer-bank button,
+        #start-screen button {
           display: inline-block;
           width: auto;
           padding: 12px 18px;
           margin: 4px;
           font-size: 0.9em;
         }
-
-        #status {
-          font-size: 12px;
-          bottom: 5px;
-          left: 5px;
-        }
-
         #feedback {
           font-size: 1.8em;
         }
       }
     </style>
   </head>
-
   <body>
-    <h1>Ac Dec Music Memory Quiz :o</h1>
-    <div>
-      <button onclick="setMode('easy')">Easy Mode</button>
-      <button onclick="setMode('hard')">Hard Mode</button>
+    <div id="start-screen">
+      <h1>Ac Dec Music Memory Quiz :o</h1>
+      <p>Select your settings and start the quiz!</p>
+      <div>
+        <button onclick="setMode('easy')">Easy Mode</button>
+        <button onclick="setMode('hard')">Hard Mode</button>
+      </div>
+      <div>
+        <label for="snippet-length">Snippet Length:</label>
+        <select id="snippet-length">
+          <option value="20">Easy (20s)</option>
+          <option value="15" selected>Normal (15s)</option>
+          <option value="5">Expert (5s)</option>
+        </select>
+      </div>
+      <button id="start-btn" class="secondary" style="margin-top: 20px">
+        Start Quiz
+      </button>
     </div>
 
-    <div id="game">
-      <button onclick="nextSong()">Next Song</button>
-      <button onclick="repeatSnippet()">Repeat</button><br />
+    <div id="game-screen" style="display: none">
+      <div id="quiz-progress">Question 0 of 0</div>
 
       <div id="controls">
-        <button onclick="togglePlay()">▶️/⏸</button>
+        <button id="toggle-play-btn" onclick="togglePlay()">▶️/⏸</button>
         <div id="progress-container">
           <div id="progress"></div>
         </div>
       </div>
 
+      <button id="repeat-btn" onclick="repeatSnippet()">Repeat Snippet</button>
+      <button id="skip-btn" class="tertiary" onclick="skipSong()">
+        Skip Song</button
+      ><br />
+
       <div id="hard-input">
         <input type="text" id="guess" placeholder="Type your guess" />
-        <button onclick="submitGuess()">Submit Guess</button>
+        <button id="submit-guess-btn" onclick="submitGuess()">
+          Submit Guess
+        </button>
+        <button id="hint-btn" onclick="showHint()">Hint</button>
+        <div
+          id="hints-remaining"
+          style="font-size: 0.9em; margin-top: 5px"
+        ></div>
       </div>
 
       <div id="answer-bank"></div>
-
-      <div id="overlay-feedback">
-        <div id="feedback"></div>
-      </div>
-      <div id="score"></div>
+      <div id="score" style="margin-top: 15px">Score: 0/0</div>
     </div>
 
-    <div id="status">Idle</div>
+    <div id="end-screen" style="display: none">
+      <h2>Quiz Complete!</h2>
+      <div id="final-score" style="font-size: 1.5em; margin-bottom: 20px"></div>
+      <h3>Review Missed Songs:</h3>
+      <ul id="missed-songs-list"></ul>
+      <button id="play-again-btn" class="secondary">Play Again</button>
+    </div>
 
+    <div id="overlay-feedback">
+      <div id="feedback"></div>
+    </div>
+    <div id="status">Idle</div>
     <audio id="player"></audio>
 
     <script>
@@ -194,14 +274,40 @@
         { title: "Sicilienne", file: "songs/sicilienne.mp3" },
       ];
 
+      // NEW: Game State Variables
       let mode = "hard";
+      let shuffledSongs = [];
+      let currentSongIndex = 0;
+      let missedSongs = [];
+      let hintsRemaining = 3;
+      let snippetLength = 15;
+
       let audio = document.getElementById("player");
       let currentSong = null;
-      let score = 0,
-        total = 0;
+      let score = 0;
       let snippetStart = 0,
         snippetEnd = 0;
       let progressInterval;
+
+      // NEW: Web Audio API for sound feedback
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function playFeedbackSound(isCorrect) {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime); // Volume
+        if (isCorrect) {
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        } else {
+          oscillator.type = "square";
+          oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3 note
+        }
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.2); // Duration of sound
+      }
 
       function setMode(selected) {
         mode = selected;
@@ -209,14 +315,20 @@
           mode === "easy" ? "block" : "none";
         document.getElementById("hard-input").style.display =
           mode === "hard" ? "block" : "none";
-        renderAnswerBank();
+        document.getElementById("hint-btn").style.display =
+          mode === "hard" ? "inline-block" : "none";
+        document.getElementById("hints-remaining").style.display =
+          mode === "hard" ? "block" : "none";
+        console.log(`Mode set to ${mode}`);
       }
 
       function renderAnswerBank() {
         const bank = document.getElementById("answer-bank");
         bank.innerHTML = "";
         if (mode === "easy") {
-          songs.forEach((song) => {
+          // In easy mode, create buttons for all possible answers
+          let allTitles = [...songs].sort(() => 0.5 - Math.random());
+          allTitles.forEach((song) => {
             let btn = document.createElement("button");
             btn.textContent = song.title;
             btn.onclick = () => submitGuess(song.title);
@@ -225,10 +337,50 @@
         }
       }
 
+      // NEW: Start the quiz
+      function startGame() {
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("end-screen").style.display = "none";
+
+        score = 0;
+        currentSongIndex = 0;
+        hintsRemaining = 3;
+        missedSongs = [];
+        snippetLength = parseInt(
+          document.getElementById("snippet-length").value,
+          10
+        );
+
+        // Shuffle songs for a new random order each quiz
+        shuffledSongs = [...songs].sort(() => 0.5 - Math.random());
+
+        setMode(mode); // Apply mode settings
+        renderAnswerBank();
+        updateScoreDisplay();
+        nextSong();
+      }
+
       function nextSong() {
+        if (currentSongIndex >= shuffledSongs.length) {
+          displayEndScreen();
+          return;
+        }
+
+        setControlsDisabled(true); // Disable controls until song is loaded
         document.getElementById("guess").value = "";
-        currentSong = songs[Math.floor(Math.random() * songs.length)];
-        total++;
+        document.getElementById("hint-btn").disabled = false; // Re-enable hint button
+
+        currentSong = shuffledSongs[currentSongIndex];
+        currentSongIndex++;
+
+        updateScoreDisplay();
+        document.getElementById(
+          "quiz-progress"
+        ).textContent = `Question ${currentSongIndex} of ${shuffledSongs.length}`;
+        document.getElementById(
+          "hints-remaining"
+        ).textContent = `Hints: ${hintsRemaining}`;
 
         audio.src = currentSong.file;
         audio.load();
@@ -237,13 +389,19 @@
           let duration = audio.duration;
           snippetStart = Math.max(
             0,
-            Math.floor(Math.random() * (duration - 15))
+            Math.floor(Math.random() * (duration - snippetLength))
           );
-          snippetEnd = snippetStart + 15;
+          snippetEnd = snippetStart + snippetLength;
           audio.currentTime = snippetStart;
           audio.play();
           updateStatus("🎵 Now Playing...");
           trackProgress();
+          setControlsDisabled(false); // Enable controls now that song is ready
+        };
+
+        audio.onerror = () => {
+          updateStatus("❌ Error loading song. Skipping.");
+          setTimeout(nextSong, 1500); // Auto-skip to next song on error
         };
       }
 
@@ -254,6 +412,21 @@
           updateStatus("🎵 Now Playing...");
           trackProgress();
         }
+      }
+
+      // NEW: Skip song function
+      function skipSong() {
+        if (!currentSong) return;
+        audio.pause();
+        clearInterval(progressInterval);
+        showOverlay(
+          `❌ Skipped! The answer was: ${currentSong.title}`,
+          "orange"
+        );
+        playFeedbackSound(false);
+        missedSongs.push(currentSong);
+        updateScoreDisplay(); // Show score update immediately
+        setTimeout(nextSong, 2000);
       }
 
       function togglePlay() {
@@ -288,58 +461,129 @@
       function submitGuess(inputGuess = null) {
         let guess = inputGuess || document.getElementById("guess").value.trim();
         if (!guess) {
-          showOverlay("❌ Enter a guess!", "red");
+          showOverlay("❌ Please enter a guess!", "red");
           return;
         }
 
+        setControlsDisabled(true); // Disable controls after guessing
         audio.pause();
         clearInterval(progressInterval);
         document.getElementById("progress").style.width = "0%";
         updateStatus("Idle");
 
-        let normalizedGuess = guess.toLowerCase();
-        let normalizedAnswer = currentSong.title.toLowerCase();
+        let normalizedGuess = guess.toLowerCase().replace(/[^a-z0-9]/gi, "");
+        let normalizedAnswer = currentSong.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]/gi, "");
 
-        if (levenshtein(normalizedGuess, normalizedAnswer) <= 3) {
+        // Using Levenshtein distance for fuzzy matching
+        if (
+          levenshtein(normalizedGuess, normalizedAnswer) <= 3 ||
+          normalizedAnswer.includes(normalizedGuess)
+        ) {
           score++;
-          showOverlay("✅ Correct! " + currentSong.title, "lime");
+          showOverlay(`✅ Correct!<br>${currentSong.title}`, "lime");
+          playFeedbackSound(true);
         } else {
-          showOverlay("❌ Incorrect! " + currentSong.title, "red");
+          showOverlay(
+            `❌ Incorrect!<br>The answer was: ${currentSong.title}`,
+            "red"
+          );
+          playFeedbackSound(false);
+          missedSongs.push(currentSong);
         }
 
+        updateScoreDisplay();
+        setTimeout(nextSong, 2500); // Wait a bit longer to show feedback
+      }
+
+      // NEW: Show a hint
+      function showHint() {
+        if (hintsRemaining > 0) {
+          hintsRemaining--;
+          const firstLetter = currentSong.title.charAt(0);
+          showOverlay(`Hint: The title starts with "${firstLetter}"`, "cyan");
+          document.getElementById("hint-btn").disabled = true; // Only one hint per song
+          document.getElementById(
+            "hints-remaining"
+          ).textContent = `Hints: ${hintsRemaining}`;
+        } else {
+          showOverlay("No hints remaining!", "orange");
+        }
+      }
+
+      // NEW: Display the end screen
+      function displayEndScreen() {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("end-screen").style.display = "block";
+        updateStatus("Quiz Finished");
+
+        const percentage = ((score / shuffledSongs.length) * 100).toFixed(1);
+        document.getElementById(
+          "final-score"
+        ).innerHTML = `Final Score: ${score}/${shuffledSongs.length} (${percentage}%)`;
+
+        const missedList = document.getElementById("missed-songs-list");
+        missedList.innerHTML = "";
+        if (missedSongs.length === 0) {
+          missedList.innerHTML = "<li>🎉 You missed none! Perfect score!</li>";
+        } else {
+          missedSongs.forEach((song) => {
+            const li = document.createElement("li");
+            li.textContent = song.title;
+            missedList.appendChild(li);
+          });
+        }
+      }
+
+      function updateScoreDisplay() {
         document.getElementById(
           "score"
-        ).textContent = `Score: ${score}/${total}`;
-
-        if (total < songs.length) {
-          setTimeout(nextSong, 2000);
-        }
+        ).textContent = `Score: ${score}/${currentSongIndex}`;
       }
 
       function updateStatus(text) {
         document.getElementById("status").textContent = text;
       }
 
-      function levenshtein(a, b) {
-        const m = [];
-        for (let i = 0; i <= b.length; i++) m[i] = [i];
-        for (let j = 0; j <= a.length; j++) m[0][j] = j;
-        for (let i = 1; i <= b.length; i++) {
-          for (let j = 1; j <= a.length; j++) {
-            m[i][j] =
-              b.charAt(i - 1) == a.charAt(j - 1)
-                ? m[i - 1][j - 1]
-                : Math.min(
-                    m[i - 1][j - 1] + 1,
-                    m[i][j - 1] + 1,
-                    m[i - 1][j] + 1
-                  );
-          }
-        }
-        return m[b.length][a.length];
+      // NEW: Disable/Enable controls
+      function setControlsDisabled(isDisabled) {
+        document
+          .querySelectorAll("#game-screen button, #game-screen input")
+          .forEach((el) => {
+            el.disabled = isDisabled;
+          });
       }
 
-      // Overlay with click-to-dismiss
+      function levenshtein(a, b) {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+
+        var matrix = [];
+
+        for (var i = 0; i <= b.length; i++) {
+          matrix[i] = [i];
+        }
+
+        for (var j = 0; j <= a.length; j++) {
+          matrix[0][j] = j;
+        }
+
+        for (i = 1; i <= b.length; i++) {
+          for (j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) == a.charAt(j - 1)) {
+              matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+              matrix[i][j] = Math.min(
+                matrix[i - 1][j - 1] + 1,
+                Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+              );
+            }
+          }
+        }
+        return matrix[b.length][a.length];
+      }
+
       document
         .getElementById("overlay-feedback")
         .addEventListener("click", hideOverlay);
@@ -347,11 +591,11 @@
       function showOverlay(message, color = "white") {
         const overlay = document.getElementById("overlay-feedback");
         const feedback = document.getElementById("feedback");
-        feedback.textContent = message;
+        feedback.innerHTML = message; // Use innerHTML to support <br> tags
         feedback.style.color = color;
         overlay.style.opacity = "1";
         overlay.style.pointerEvents = "auto";
-        setTimeout(hideOverlay, 2000); // auto-hide
+        setTimeout(hideOverlay, 2500); // Auto-hide
       }
 
       function hideOverlay() {
@@ -360,7 +604,17 @@
         overlay.style.pointerEvents = "none";
       }
 
-      setMode("hard"); // start in Hard mode
+      // NEW: Event listeners for start and play again buttons
+      document.getElementById("start-btn").addEventListener("click", startGame);
+      document
+        .getElementById("play-again-btn")
+        .addEventListener("click", () => {
+          // Simply reload for the cleanest reset
+          window.location.reload();
+        });
+
+      // Initialize with Hard mode as default
+      setMode("hard");
     </script>
   </body>
 </html>
