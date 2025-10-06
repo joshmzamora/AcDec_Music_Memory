@@ -1,5 +1,4 @@
 // --- Game Data ---
-
 const songs = [
   {
     title: "Lost Your Head Blues",
@@ -130,7 +129,6 @@ const easyModeBtn = document.getElementById("easy-mode-btn");
 const hardModeBtn = document.getElementById("hard-mode-btn");
 
 // --- Game State Variables ---
-// FIX 1: Set default mode to 'easy' to match the HTML default selection
 let mode = "easy";
 let quizType = "both";
 let currentSong = null;
@@ -139,14 +137,67 @@ let snippetLength = 15;
 let snippetStart = 0;
 let snippetEnd = 0;
 let progressInterval;
-let stage = "title"; // 'title' or 'artist'
+let stage = "title";
 let hintsRemaining = 3;
-let missedSongs = new Set(); // Use a Set to store unique missed songs
-let quizSongs = []; // Shuffled array of songs for the current quiz
-let songIndex = 0; // Index for current song in quizSongs
+let missedSongs = new Set();
+let quizSongs = [];
+let songIndex = 0;
+let overlayTimeout; // Global timer for overlay auto-dismissal
+
+// --- Web Audio API: Programmatic Sound Generation (FUN & COMPLEX) ---
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+/** Helper function to generate and play a simple oscillator tone */
+function playTone(freq, duration, type = "sine", volume = 0.5, delay = 0) {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  const startTime = audioContext.currentTime + delay;
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(freq, startTime);
+
+  gainNode.gain.setValueAtTime(volume, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration);
+}
+
+// ✅ Correct: Ascending major chord (C-E-G) for a triumphant 'chime'
+function playCorrectSFX() {
+  playTone(523.25, 0.15, "square", 0.6, 0.0); // C5
+  playTone(659.25, 0.15, "square", 0.6, 0.05); // E5
+  playTone(783.99, 0.25, "triangle", 0.7, 0.1); // G5 (sustained)
+}
+
+// ❌ Incorrect: Quick, low, and dissonant 'buzz'
+function playIncorrectSFX() {
+  const buzzFreq = 100;
+  const buzzDuration = 0.4;
+
+  // Low bass tone
+  playTone(buzzFreq, buzzDuration, "sawtooth", 0.5);
+
+  // Add a slightly higher, dissonant tone to create the 'buzz' effect
+  playTone(buzzFreq * 1.05, buzzDuration, "square", 0.4);
+}
+
+// 💡 Hint: Quick, playful three-note arpeggio (C-G-C)
+function playHintSFX() {
+  playTone(659.25, 0.08, "sine", 0.5, 0.0); // E5
+  playTone(783.99, 0.08, "sine", 0.5, 0.05); // G5
+  playTone(1046.5, 0.15, "sine", 0.5, 0.1); // C6 (highest)
+}
 
 // --- Utility Functions ---
-// ... (shuffleArray and levenshtein functions remain the same)
+
+/** Shuffles an array in place (Fisher-Yates) */
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -154,6 +205,7 @@ function shuffleArray(array) {
   }
 }
 
+/** Utility: Levenshtein distance for fuzzy matching */
 function levenshtein(a, b) {
   const m = [];
   for (let i = 0; i <= b.length; i++) m[i] = [i];
@@ -170,10 +222,10 @@ function levenshtein(a, b) {
 }
 
 // --- UI & Control Functions ---
+// ... (setMode, startGame, updateGameUI, renderAnswerBank, nextSong, repeatSnippet remain the same)
 
 function setMode(selected) {
   mode = selected;
-  // Visual update logic
   easyModeBtn.classList.remove("selected");
   hardModeBtn.classList.remove("selected");
   if (mode === "easy") {
@@ -190,16 +242,13 @@ function startGame() {
   startScreen.style.display = "none";
   gameScreen.style.display = "block";
 
-  // Reset game state
   score = 0;
   missedSongs.clear();
   quizSongs = [...songs];
   shuffleArray(quizSongs);
   songIndex = 0;
 
-  // FIX 2: Force the UI to update based on the current mode before nextSong
   updateGameUI();
-
   nextSong();
 }
 
@@ -208,17 +257,15 @@ function updateGameUI() {
   scoreDisplay.textContent = `Score: ${score}`;
   hintCountSpan.textContent = hintsRemaining;
 
-  // This section ensures the correct input is visible based on 'mode'
   if (mode === "easy") {
     hardInputDiv.style.display = "none";
     answerBankDiv.style.display = "flex";
-    renderAnswerBank(); // <-- STEP 1: Renders the bank for the CURRENT stage ('title' first)
+    renderAnswerBank();
   } else {
     hardInputDiv.style.display = "flex";
     answerBankDiv.style.display = "none";
   }
 
-  // Update input placeholder based on current guessing stage (Hard Mode only)
   if (stage === "title") {
     guessInput.placeholder = "Type your guess: Song Title";
   } else if (stage === "artist") {
@@ -232,19 +279,15 @@ function renderAnswerBank() {
   if (mode === "easy") {
     let answers = [];
 
-    // This logic determines the content of the bank:
-    // If it's the artist stage, show artist names; otherwise, show titles.
     if (quizType === "artist" || (quizType === "both" && stage === "artist")) {
-      answers = songs.map((s) => s.artist); // <-- Shows ARTIST bank
+      answers = songs.map((s) => s.artist);
     } else {
-      answers = songs.map((s) => s.title); // <-- Shows TITLE bank
+      answers = songs.map((s) => s.title);
     }
 
-    // Shuffle and limit the unique answers for the word bank
     let uniqueAnswers = [...new Set(answers)];
     shuffleArray(uniqueAnswers);
 
-    // Limit to the first 10 unique answers
     uniqueAnswers.slice(0, 10).forEach((ans) => {
       let btn = document.createElement("button");
       btn.textContent = ans;
@@ -255,25 +298,21 @@ function renderAnswerBank() {
 }
 
 function nextSong() {
-  // 1. Check if the quiz is over
   if (songIndex >= quizSongs.length) {
     displayEndScreen();
     return;
   }
 
-  // 2. Setup next song
   currentSong = quizSongs[songIndex];
-  stage = quizType === "artist" ? "artist" : "title"; // Start stage based on quiz type
+  stage = quizType === "artist" ? "artist" : "title";
   hintsRemaining = 3;
   guessInput.value = "";
 
   clearInterval(progressInterval);
   progressBar.style.width = "0%";
 
-  // FIX 3: updateGameUI is called here too, maintaining consistency
   updateGameUI();
 
-  // 3. Play audio snippet
   audio.src = currentSong.file;
   audio.load();
   audio.onloadedmetadata = () => {
@@ -314,6 +353,7 @@ function repeatSnippet() {
 
 function skipSong() {
   if (currentSong) {
+    // No sound effect for skip as requested
     missedSongs.add(currentSong);
     showOverlay(
       `⏭️ Skipped. Answer: ${currentSong.title} by ${currentSong.artist}`,
@@ -321,7 +361,7 @@ function skipSong() {
     );
   }
   songIndex++;
-  setTimeout(nextSong, 2500); // Wait for feedback overlay to finish
+  setTimeout(nextSong, 200);
 }
 
 function submitGuess(inputGuess = null) {
@@ -338,7 +378,6 @@ function submitGuess(inputGuess = null) {
   let targetType = "";
   let songCompleted = false;
 
-  // 1. Determine the target answer based on the current stage/quiz type
   if (stage === "title" && (quizType === "title" || quizType === "both")) {
     targetAnswer = currentSong.title;
     targetType = "Title";
@@ -352,29 +391,25 @@ function submitGuess(inputGuess = null) {
     return;
   }
 
-  // 2. Check correctness using Levenshtein distance
   correct = levenshtein(normalizedGuess, targetAnswer.toLowerCase()) <= 3;
 
   if (correct) {
+    playCorrectSFX(); // Trigger COMPLEX CORRECT SFX
+
     score++;
     showOverlay(`✅ Correct ${targetType}!`, "#4CAF50");
 
-    // --- KEY TRANSITION LOGIC ---
     if (quizType === "both" && targetType === "Title") {
-      // Step A: Update the internal state to prepare for the Artist guess
       stage = "artist";
       guessInput.value = "";
-
-      // Step B: Call updateGameUI, which in turn calls renderAnswerBank()
-      // This switches the word bank from Titles to Artists.
       updateGameUI();
-
-      // Step C: Replay the snippet for the user to guess the artist
       setTimeout(repeatSnippet, 1000);
-      return; // Stops here, waiting for the artist guess
+      return;
     }
-    songCompleted = true; // If not "both" or if "Artist" was guessed, the song is done
+    songCompleted = true;
   } else {
+    playIncorrectSFX(); // Trigger COMPLEX INCORRECT SFX
+
     showOverlay(
       `❌ Incorrect ${targetType}. Correct: ${targetAnswer}`,
       "#FF0000"
@@ -387,7 +422,7 @@ function submitGuess(inputGuess = null) {
 
   if (songCompleted) {
     songIndex++;
-    setTimeout(nextSong, 2500);
+    setTimeout(nextSong, 200);
   }
 }
 
@@ -397,20 +432,20 @@ function showHint() {
     return;
   }
 
+  playHintSFX(); // Trigger COMPLEX HINT SFX
+
   let hintMsg = "";
   const target = stage === "title" ? currentSong.title : currentSong.artist;
 
   if (hintsRemaining === 3) {
     hintMsg = "First letter: " + target[0].toUpperCase();
   } else if (hintsRemaining === 2) {
-    // Reveal the other element
     if (stage === "title") {
       hintMsg = "Artist is: " + currentSong.artist;
     } else {
       hintMsg = "Title is: " + currentSong.title;
     }
   } else if (hintsRemaining === 1) {
-    // Reveal word count
     hintMsg = "Word count: " + target.split(" ").length;
   }
 
@@ -419,8 +454,43 @@ function showHint() {
   showOverlay("💡 Hint: " + hintMsg, "#1e90ff");
 }
 
-// --- Audio & Progress Functions ---
+// --- Overlay Logic with Click-Dismiss and Timeout ---
 
+function hideOverlay() {
+  const overlay = document.getElementById("overlay-feedback");
+
+  // Remove the event listener to prevent double triggers
+  overlay.removeEventListener("click", hideOverlay);
+
+  // Hide the overlay
+  overlay.style.opacity = "0";
+  overlay.style.pointerEvents = "none";
+}
+
+function showOverlay(message, color = "#ffd700") {
+  const overlay = document.getElementById("overlay-feedback");
+  const feedback = document.getElementById("feedback");
+
+  clearTimeout(overlayTimeout);
+
+  feedback.textContent = message;
+  feedback.style.color = color;
+  overlay.style.opacity = "1";
+  overlay.style.pointerEvents = "auto";
+
+  // Add click listener with { once: true } for immediate dismissal
+  overlay.addEventListener("click", hideOverlay, { once: true });
+
+  // Set the automatic timeout (fallback to dismiss after 2 seconds)
+  overlayTimeout = setTimeout(() => {
+    if (overlay.style.opacity === "1") {
+      hideOverlay();
+    }
+  }, 2000);
+}
+
+// --- Audio & Progress Functions ---
+// ... (trackProgress and updateStatus remain the same)
 function updateStatus(text) {
   document.getElementById("status").textContent = text;
 }
@@ -442,23 +512,8 @@ function trackProgress() {
   }, 200);
 }
 
-function showOverlay(message, color = "#ffd700") {
-  const overlay = document.getElementById("overlay-feedback");
-  const feedback = document.getElementById("feedback");
-  feedback.textContent = message;
-  feedback.style.color = color;
-  overlay.style.opacity = "1";
-  overlay.style.pointerEvents = "auto";
-  setTimeout(hideOverlay, 2000);
-}
-
-function hideOverlay() {
-  const overlay = document.getElementById("overlay-feedback");
-  overlay.style.opacity = "0";
-  overlay.style.pointerEvents = "none";
-}
-
 // --- End Game Functions ---
+// ... (displayEndScreen and restartGame remain the same)
 
 function displayEndScreen() {
   audio.pause();

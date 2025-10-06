@@ -49,6 +49,22 @@
     </div>
 
     <div id="game-screen" style="display: none">
+      <div id="game-screen" style="display: none">
+        <div id="status">Idle</div>
+        <audio id="player"></audio>
+
+        <audio
+          id="sfx-correct"
+          src="songs/sfx_correct.mp3"
+          preload="auto"
+        ></audio>
+        <audio
+          id="sfx-incorrect"
+          src="songs/sfx_incorrect.mp3"
+          preload="auto"
+        ></audio>
+        <audio id="sfx-hint" src="songs/sfx_hint.mp3" preload="auto"></audio>
+      </div>
       <div class="top-bar">
         <div id="progress-text">Question 0 of 0</div>
         <div id="score">Score: 0</div>
