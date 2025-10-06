@@ -121,6 +121,7 @@ const endScreen = document.getElementById("end-screen");
 const guessInput = document.getElementById("guess");
 const scoreDisplay = document.getElementById("score");
 const fortuneDisplay = document.getElementById("fortune");
+const mansionDisplay = document.getElementById("mansion-display");
 const progressText = document.getElementById("progress-text");
 const progressBar = document.getElementById("progress");
 const hardInputDiv = document.getElementById("hard-input");
@@ -134,7 +135,7 @@ let mode = "easy";
 let quizType = "both";
 let currentSong = null;
 let score = 0;
-let fortune = 10000;
+let gatsbyFortune = 10000;
 let snippetLength = 15;
 let snippetStart = 0;
 let snippetEnd = 0;
@@ -224,7 +225,6 @@ function levenshtein(a, b) {
 }
 
 // --- UI & Control Functions ---
-// ... (setMode, startGame, updateGameUI, renderAnswerBank, nextSong, repeatSnippet remain the same)
 
 function setMode(selected) {
   mode = selected;
@@ -245,7 +245,7 @@ function startGame() {
   gameScreen.style.display = "block";
 
   score = 0;
-  fortune = 10000;
+  gatsbyFortune = 10000;
   missedSongs.clear();
   quizSongs = [...songs];
   shuffleArray(quizSongs);
@@ -258,13 +258,15 @@ function startGame() {
 function updateGameUI() {
   progressText.textContent = `Question ${songIndex + 1} of ${songs.length}`;
   scoreDisplay.textContent = `Score: ${score}`;
-  fortuneDisplay.textContent = `Fortune: $${fortune}`;
+  fortuneDisplay.textContent = `Fortune: $${gatsbyFortune}`;
   hintCountSpan.textContent = hintsRemaining;
 
+  updateMansionDisplay();
+
   fortuneDisplay.classList.remove("gold", "green", "red");
-  if (fortune >= 20000) {
+  if (gatsbyFortune >= 20000) {
     fortuneDisplay.classList.add("gold");
-  } else if (fortune >= 5000) {
+  } else if (gatsbyFortune >= 5000) {
     fortuneDisplay.classList.add("green");
   } else {
     fortuneDisplay.classList.add("red");
@@ -284,6 +286,18 @@ function updateGameUI() {
   } else if (stage === "artist") {
     guessInput.placeholder = "Type your guess: Artist Name";
   }
+}
+
+function updateMansionDisplay() {
+  let tier = 1;
+  if (gatsbyFortune >= 75000) {
+    tier = 4;
+  } else if (gatsbyFortune >= 50000) {
+    tier = 3;
+  } else if (gatsbyFortune >= 25000) {
+    tier = 2;
+  }
+  mansionDisplay.style.backgroundImage = `url('mansion/tier${tier}.png')`;
 }
 
 function renderAnswerBank() {
@@ -366,8 +380,8 @@ function repeatSnippet() {
 
 function skipSong() {
   if (currentSong) {
-    const loss = Math.floor(fortune * 0.1);
-    fortune -= loss;
+    const loss = Math.floor(gatsbyFortune * 0.1);
+    gatsbyFortune -= loss;
     missedSongs.add(currentSong);
     showOverlay(
       `⏭️ Skipped. Answer: ${currentSong.title} by ${currentSong.artist}. You lose $${loss}`,
@@ -411,8 +425,8 @@ function submitGuess(inputGuess = null) {
     playCorrectSFX(); // Trigger COMPLEX CORRECT SFX
 
     score++;
-    const gain = Math.floor(Math.random() * 1501) + 500;
-    fortune += gain;
+    const gain = Math.floor(Math.random() * 1001) + 2000;
+    gatsbyFortune += gain;
     showOverlay(`✅ Correct ${targetType}! You gain $${gain}`, "#4CAF50");
 
     if (quizType === "both" && targetType === "Title") {
@@ -426,8 +440,8 @@ function submitGuess(inputGuess = null) {
   } else {
     playIncorrectSFX(); // Trigger COMPLEX INCORRECT SFX
 
-    const loss = Math.floor(fortune * 0.1);
-    fortune -= loss;
+    const loss = Math.floor(gatsbyFortune * 0.1);
+    gatsbyFortune -= loss;
     showOverlay(
       `❌ Incorrect ${targetType}. Correct: ${targetAnswer}. You lose $${loss}`,
       "#FF0000"
@@ -508,7 +522,7 @@ function showOverlay(message, color = "#ffd700") {
 }
 
 // --- Audio & Progress Functions ---
-// ... (trackProgress and updateStatus remain the same)
+
 function updateStatus(text) {
   document.getElementById("status").textContent = text;
 }
@@ -531,7 +545,6 @@ function trackProgress() {
 }
 
 // --- End Game Functions ---
-// ... (displayEndScreen and restartGame remain the same)
 
 function displayEndScreen() {
   audio.pause();
@@ -540,10 +553,16 @@ function displayEndScreen() {
 
   const totalPossiblePoints = songs.length * (quizType === "both" ? 2 : 1);
 
+  if (gatsbyFortune >= 75000) {
+    mansionDisplay.style.backgroundImage = "url('mansion/success.png')";
+  } else {
+    mansionDisplay.style.backgroundImage = "url('mansion/failure.png')";
+  }
+
   document.getElementById("final-score").innerHTML = `
     <h2>Quiz Complete!</h2>
     <p>Final Score: <strong>${score}/${totalPossiblePoints}</strong></p>
-    <p>Final Fortune: <strong>$${fortune}</strong></p>
+    <p>Final Fortune: <strong>$${gatsbyFortune}</strong></p>
     <p>Accuracy: <strong>${Math.round(
       (score / totalPossiblePoints) * 100
     )}%</strong></p>

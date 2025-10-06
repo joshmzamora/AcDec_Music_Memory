@@ -100,6 +100,26 @@ select {
     margin: 0 auto;
 }
 
+#mansion-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 10px;
+    border: 4px solid #008080; /* Teal */
+    background: #000;
+}
+
+#mansion-display {
+    width: 100%;
+    height: 200px; /* Adjust as needed */
+    background-image: url('mansion/tier1.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: background-image 0.5s ease-in-out;
+    background-color: #222;
+    border: 1px dashed #ffd700;
+}
+
 #controls {
     margin: 20px 0;
 }
