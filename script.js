@@ -1,6 +1,6 @@
 // --- Game Data ---
+
 const songs = [
-  // ... (Your songs array remains the same)
   {
     title: "Lost Your Head Blues",
     artist: "Bessie Smith",
@@ -17,7 +17,93 @@ const songs = [
     rangeStart: 0,
     rangeEnd: 149,
   },
-  // ... (rest of your songs)
+  {
+    title: "Hotter Than That",
+    artist: "Louis Armstrong and His Hot Five",
+    file: "songs/hotter.mp3",
+    rangeStart: 0,
+    rangeEnd: 180,
+  },
+  {
+    title: "The Stampede",
+    artist: "Fletcher Henderson",
+    file: "songs/stampede.mp3",
+    link: "https://en.wikipedia.org/wiki/Fletcher_Henderson",
+    rangeStart: 0,
+    rangeEnd: 192,
+  },
+  {
+    title: "The Charleston",
+    artist: "Arthur Gibbs",
+    file: "songs/charleston.mp3",
+    link: "https://en.wikipedia.org/wiki/The_Charleston_(dance)",
+    rangeStart: 0,
+    rangeEnd: 181,
+  },
+  {
+    title: "Tea for Two",
+    artist: "Marion Harris",
+    file: "songs/tea.mp3",
+    link: "https://en.wikipedia.org/wiki/Tea_for_Two_(song)",
+    rangeStart: 0,
+    rangeEnd: 182,
+  },
+  {
+    title: "Can’t Help Lovin’ Dat Man",
+    artist: "Helen Morgan",
+    file: "songs/canthelp.mp3",
+    link: "https://en.wikipedia.org/wiki/Can%27t_Help_Lovin%27_Dat_Man",
+    rangeStart: 0,
+    rangeEnd: 181,
+  },
+  {
+    title: "Sweet Georgia Brown",
+    artist: "Ben Bernie",
+    file: "songs/georgia.mp3",
+    link: "https://en.wikipedia.org/wiki/Sweet_Georgia_Brown",
+    rangeStart: 0,
+    rangeEnd: 177,
+  },
+  {
+    title: "Toot, Toot, Tootsie!",
+    artist: "Al Jolson",
+    file: "songs/tootsie.mp3",
+    link: "https://en.wikipedia.org/wiki/Toot,_Toot,_Tootsie_(Goo%27_Bye!)",
+    rangeStart: 0,
+    rangeEnd: 147,
+  },
+  {
+    title: "La création du monde",
+    artist: "Darius Milhaud",
+    file: "songs/creation.mp3",
+    link: "https://en.wikipedia.org/wiki/La_cr%C3%A9ation_du_monde",
+    rangeStart: 0,
+    rangeEnd: 333,
+  },
+  {
+    title: "Rhapsody in Blue",
+    artist: "George Gershwin",
+    file: "songs/rhapsody.mp3",
+    link: "https://en.wikipedia.org/wiki/Rhapsody_in_Blue",
+    rangeStart: 0,
+    rangeEnd: 300,
+  },
+  {
+    title: "Burlesque",
+    artist: "Aaron Copland",
+    file: "songs/burlesque.mp3",
+    link: "https://en.wikipedia.org/wiki/Music_for_the_Theatre",
+    rangeStart: 0,
+    rangeEnd: 195,
+  },
+  {
+    title: "Violin Sonata No. 2 – Blues",
+    artist: "Maurice Ravel",
+    file: "songs/violin.mp3",
+    link: "https://en.wikipedia.org/wiki/Violin_Sonata_No._2_(Ravel)",
+    rangeStart: 0,
+    rangeEnd: 299,
+  },
   {
     title: "Sicilienne",
     artist: "Germaine Tailleferre",
