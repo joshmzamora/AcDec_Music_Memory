@@ -120,6 +120,7 @@ const gameScreen = document.getElementById("game-screen");
 const endScreen = document.getElementById("end-screen");
 const guessInput = document.getElementById("guess");
 const scoreDisplay = document.getElementById("score");
+const fortuneDisplay = document.getElementById("fortune");
 const progressText = document.getElementById("progress-text");
 const progressBar = document.getElementById("progress");
 const hardInputDiv = document.getElementById("hard-input");
@@ -133,6 +134,7 @@ let mode = "easy";
 let quizType = "both";
 let currentSong = null;
 let score = 0;
+let fortune = 10000;
 let snippetLength = 15;
 let snippetStart = 0;
 let snippetEnd = 0;
@@ -243,6 +245,7 @@ function startGame() {
   gameScreen.style.display = "block";
 
   score = 0;
+  fortune = 10000;
   missedSongs.clear();
   quizSongs = [...songs];
   shuffleArray(quizSongs);
@@ -255,7 +258,17 @@ function startGame() {
 function updateGameUI() {
   progressText.textContent = `Question ${songIndex + 1} of ${songs.length}`;
   scoreDisplay.textContent = `Score: ${score}`;
+  fortuneDisplay.textContent = `Fortune: $${fortune}`;
   hintCountSpan.textContent = hintsRemaining;
+
+  fortuneDisplay.classList.remove("gold", "green", "red");
+  if (fortune >= 20000) {
+    fortuneDisplay.classList.add("gold");
+  } else if (fortune >= 5000) {
+    fortuneDisplay.classList.add("green");
+  } else {
+    fortuneDisplay.classList.add("red");
+  }
 
   if (mode === "easy") {
     hardInputDiv.style.display = "none";
@@ -353,10 +366,11 @@ function repeatSnippet() {
 
 function skipSong() {
   if (currentSong) {
-    // No sound effect for skip as requested
+    const loss = Math.floor(fortune * 0.1);
+    fortune -= loss;
     missedSongs.add(currentSong);
     showOverlay(
-      `⏭️ Skipped. Answer: ${currentSong.title} by ${currentSong.artist}`,
+      `⏭️ Skipped. Answer: ${currentSong.title} by ${currentSong.artist}. You lose $${loss}`,
       "#FFA500"
     );
   }
@@ -397,7 +411,9 @@ function submitGuess(inputGuess = null) {
     playCorrectSFX(); // Trigger COMPLEX CORRECT SFX
 
     score++;
-    showOverlay(`✅ Correct ${targetType}!`, "#4CAF50");
+    const gain = Math.floor(Math.random() * 1501) + 500;
+    fortune += gain;
+    showOverlay(`✅ Correct ${targetType}! You gain $${gain}`, "#4CAF50");
 
     if (quizType === "both" && targetType === "Title") {
       stage = "artist";
@@ -410,15 +426,17 @@ function submitGuess(inputGuess = null) {
   } else {
     playIncorrectSFX(); // Trigger COMPLEX INCORRECT SFX
 
+    const loss = Math.floor(fortune * 0.1);
+    fortune -= loss;
     showOverlay(
-      `❌ Incorrect ${targetType}. Correct: ${targetAnswer}`,
+      `❌ Incorrect ${targetType}. Correct: ${targetAnswer}. You lose $${loss}`,
       "#FF0000"
     );
     missedSongs.add(currentSong);
     songCompleted = true;
   }
 
-  scoreDisplay.textContent = `Score: ${score}`;
+  updateGameUI();
 
   if (songCompleted) {
     songIndex++;
@@ -525,6 +543,7 @@ function displayEndScreen() {
   document.getElementById("final-score").innerHTML = `
     <h2>Quiz Complete!</h2>
     <p>Final Score: <strong>${score}/${totalPossiblePoints}</strong></p>
+    <p>Final Fortune: <strong>$${fortune}</strong></p>
     <p>Accuracy: <strong>${Math.round(
       (score / totalPossiblePoints) * 100
     )}%</strong></p>

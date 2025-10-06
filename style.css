@@ -206,3 +206,27 @@ select {
     color: #ffd700;
     text-decoration: underline;
 }
+
+#fortune {
+    padding: 10px 20px;
+    margin: 8px;
+    border: 2px solid #008080; /* Teal */
+    border-radius: 4px;
+    background: #111;
+    color: #f8e7c3;
+    font-weight: bold;
+    text-shadow: 2px 2px #ffd700; /* Gold */
+    font-size: 1.2em;
+}
+
+#fortune.gold {
+    color: #ffd700; /* Gold */
+}
+
+#fortune.green {
+    color: #00ff00; /* Green */
+}
+
+#fortune.red {
+    color: #ff4500; /* OrangeRed */
+}
