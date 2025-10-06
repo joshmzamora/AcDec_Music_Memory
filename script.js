@@ -121,6 +121,7 @@ const endScreen = document.getElementById("end-screen");
 const guessInput = document.getElementById("guess");
 const scoreDisplay = document.getElementById("score");
 const fortuneDisplay = document.getElementById("fortune");
+const mansionContainer = document.getElementById("mansion-container");
 const mansionDisplay = document.getElementById("mansion-display");
 const progressText = document.getElementById("progress-text");
 const progressBar = document.getElementById("progress");
@@ -129,6 +130,7 @@ const answerBankDiv = document.getElementById("answer-bank");
 const hintCountSpan = document.getElementById("hint-count");
 const easyModeBtn = document.getElementById("easy-mode-btn");
 const hardModeBtn = document.getElementById("hard-mode-btn");
+const mansionToggle = document.getElementById("mansion-toggle");
 
 // --- Game State Variables ---
 let mode = "easy";
@@ -251,6 +253,12 @@ function startGame() {
   shuffleArray(quizSongs);
   songIndex = 0;
 
+  if (mansionToggle.checked) {
+    mansionContainer.style.display = "block";
+  } else {
+    mansionContainer.style.display = "none";
+  }
+
   updateGameUI();
   nextSong();
 }
@@ -261,7 +269,9 @@ function updateGameUI() {
   fortuneDisplay.textContent = `Fortune: $${gatsbyFortune}`;
   hintCountSpan.textContent = hintsRemaining;
 
-  updateMansionDisplay();
+  if (mansionToggle.checked) {
+    updateMansionDisplay();
+  }
 
   fortuneDisplay.classList.remove("gold", "green", "red");
   if (gatsbyFortune >= 20000) {
@@ -553,10 +563,12 @@ function displayEndScreen() {
 
   const totalPossiblePoints = songs.length * (quizType === "both" ? 2 : 1);
 
-  if (gatsbyFortune >= 75000) {
-    mansionDisplay.style.backgroundImage = "url('mansion/success.png')";
-  } else {
-    mansionDisplay.style.backgroundImage = "url('mansion/failure.png')";
+  if (mansionToggle.checked) {
+    if (gatsbyFortune >= 75000) {
+      mansionDisplay.style.backgroundImage = "url('mansion/success.png')";
+    } else {
+      mansionDisplay.style.backgroundImage = "url('mansion/failure.png')";
+    }
   }
 
   document.getElementById("final-score").innerHTML = `
