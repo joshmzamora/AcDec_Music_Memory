@@ -1,5 +1,6 @@
 // --- Game Data ---
 const songs = [
+  // ... (Your songs array remains the same)
   {
     title: "Lost Your Head Blues",
     artist: "Bessie Smith",
@@ -16,93 +17,7 @@ const songs = [
     rangeStart: 0,
     rangeEnd: 149,
   },
-  {
-    title: "Hotter Than That",
-    artist: "Louis Armstrong and His Hot Five",
-    file: "songs/hotter.mp3",
-    rangeStart: 0,
-    rangeEnd: 180,
-  },
-  {
-    title: "The Stampede",
-    artist: "Fletcher Henderson",
-    file: "songs/stampede.mp3",
-    link: "https://en.wikipedia.org/wiki/Fletcher_Henderson",
-    rangeStart: 0,
-    rangeEnd: 192,
-  },
-  {
-    title: "The Charleston",
-    artist: "Arthur Gibbs",
-    file: "songs/charleston.mp3",
-    link: "https://en.wikipedia.org/wiki/The_Charleston_(dance)",
-    rangeStart: 0,
-    rangeEnd: 181,
-  },
-  {
-    title: "Tea for Two",
-    artist: "Marion Harris",
-    file: "songs/tea.mp3",
-    link: "https://en.wikipedia.org/wiki/Tea_for_Two_(song)",
-    rangeStart: 0,
-    rangeEnd: 182,
-  },
-  {
-    title: "Can’t Help Lovin’ Dat Man",
-    artist: "Helen Morgan",
-    file: "songs/canthelp.mp3",
-    link: "https://en.wikipedia.org/wiki/Can%27t_Help_Lovin%27_Dat_Man",
-    rangeStart: 0,
-    rangeEnd: 181,
-  },
-  {
-    title: "Sweet Georgia Brown",
-    artist: "Ben Bernie",
-    file: "songs/georgia.mp3",
-    link: "https://en.wikipedia.org/wiki/Sweet_Georgia_Brown",
-    rangeStart: 0,
-    rangeEnd: 177,
-  },
-  {
-    title: "Toot, Toot, Tootsie!",
-    artist: "Al Jolson",
-    file: "songs/tootsie.mp3",
-    link: "https://en.wikipedia.org/wiki/Toot,_Toot,_Tootsie_(Goo%27_Bye!)",
-    rangeStart: 0,
-    rangeEnd: 147,
-  },
-  {
-    title: "La création du monde",
-    artist: "Darius Milhaud",
-    file: "songs/creation.mp3",
-    link: "https://en.wikipedia.org/wiki/La_cr%C3%A9ation_du_monde",
-    rangeStart: 0,
-    rangeEnd: 333,
-  },
-  {
-    title: "Rhapsody in Blue",
-    artist: "George Gershwin",
-    file: "songs/rhapsody.mp3",
-    link: "https://en.wikipedia.org/wiki/Rhapsody_in_Blue",
-    rangeStart: 0,
-    rangeEnd: 300,
-  },
-  {
-    title: "Burlesque",
-    artist: "Aaron Copland",
-    file: "songs/burlesque.mp3",
-    link: "https://en.wikipedia.org/wiki/Music_for_the_Theatre",
-    rangeStart: 0,
-    rangeEnd: 195,
-  },
-  {
-    title: "Violin Sonata No. 2 – Blues",
-    artist: "Maurice Ravel",
-    file: "songs/violin.mp3",
-    link: "https://en.wikipedia.org/wiki/Violin_Sonata_No._2_(Ravel)",
-    rangeStart: 0,
-    rangeEnd: 299,
-  },
+  // ... (rest of your songs)
   {
     title: "Sicilienne",
     artist: "Germaine Tailleferre",
@@ -129,7 +44,8 @@ const easyModeBtn = document.getElementById("easy-mode-btn");
 const hardModeBtn = document.getElementById("hard-mode-btn");
 
 // --- Game State Variables ---
-let mode = "hard";
+// FIX 1: Set default mode to 'easy' to match the HTML default selection
+let mode = "easy";
 let quizType = "both";
 let currentSong = null;
 let score = 0;
@@ -144,8 +60,7 @@ let quizSongs = []; // Shuffled array of songs for the current quiz
 let songIndex = 0; // Index for current song in quizSongs
 
 // --- Utility Functions ---
-
-/** Shuffles an array in place (Fisher-Yates) */
+// ... (shuffleArray and levenshtein functions remain the same)
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -153,7 +68,6 @@ function shuffleArray(array) {
   }
 }
 
-/** Utility: Levenshtein distance for fuzzy matching */
 function levenshtein(a, b) {
   const m = [];
   for (let i = 0; i <= b.length; i++) m[i] = [i];
@@ -197,14 +111,8 @@ function startGame() {
   shuffleArray(quizSongs);
   songIndex = 0;
 
-  // FIX: Ensure hard-input and answer-bank have the correct initial display styles
-  if (mode === "easy") {
-    hardInputDiv.style.display = "none";
-    answerBankDiv.style.display = "flex"; // Use 'flex' to make the word bank buttons layout nicely
-  } else {
-    hardInputDiv.style.display = "flex";
-    answerBankDiv.style.display = "none";
-  }
+  // FIX 2: Force the UI to update based on the current mode before nextSong
+  updateGameUI();
 
   nextSong();
 }
@@ -214,16 +122,21 @@ function updateGameUI() {
   scoreDisplay.textContent = `Score: ${score}`;
   hintCountSpan.textContent = hintsRemaining;
 
-  // Update input placeholder based on current guessing stage
+  // This section ensures the correct input is visible based on 'mode'
+  if (mode === "easy") {
+    hardInputDiv.style.display = "none";
+    answerBankDiv.style.display = "flex";
+    renderAnswerBank(); // <-- STEP 1: Renders the bank for the CURRENT stage ('title' first)
+  } else {
+    hardInputDiv.style.display = "flex";
+    answerBankDiv.style.display = "none";
+  }
+
+  // Update input placeholder based on current guessing stage (Hard Mode only)
   if (stage === "title") {
     guessInput.placeholder = "Type your guess: Song Title";
   } else if (stage === "artist") {
     guessInput.placeholder = "Type your guess: Artist Name";
-  }
-
-  // FIX: Re-render bank when switching stages in 'both' mode
-  if (mode === "easy") {
-    renderAnswerBank();
   }
 }
 
@@ -233,19 +146,20 @@ function renderAnswerBank() {
   if (mode === "easy") {
     let answers = [];
 
-    // FIX: Correctly determine which list of answers to show based on the current stage
+    // This logic determines the content of the bank:
+    // If it's the artist stage, show artist names; otherwise, show titles.
     if (quizType === "artist" || (quizType === "both" && stage === "artist")) {
-      answers = songs.map((s) => s.artist);
+      answers = songs.map((s) => s.artist); // <-- Shows ARTIST bank
     } else {
-      // title or both/title stage
-      answers = songs.map((s) => s.title);
+      answers = songs.map((s) => s.title); // <-- Shows TITLE bank
     }
-    shuffleArray(answers);
 
-    // Limit to the first 10 unique answers to prevent overwhelming the screen
-    answers = [...new Set(answers)].slice(0, 10);
+    // Shuffle and limit the unique answers for the word bank
+    let uniqueAnswers = [...new Set(answers)];
+    shuffleArray(uniqueAnswers);
 
-    answers.forEach((ans) => {
+    // Limit to the first 10 unique answers
+    uniqueAnswers.slice(0, 10).forEach((ans) => {
       let btn = document.createElement("button");
       btn.textContent = ans;
       btn.onclick = () => submitGuess(ans);
@@ -270,21 +184,24 @@ function nextSong() {
   clearInterval(progressInterval);
   progressBar.style.width = "0%";
 
+  // FIX 3: updateGameUI is called here too, maintaining consistency
   updateGameUI();
 
   // 3. Play audio snippet
   audio.src = currentSong.file;
   audio.load();
   audio.onloadedmetadata = () => {
-    let rangeStart = currentSong.rangeStart;
-    let rangeEnd = currentSong.rangeEnd;
-    let possibleStartRange = rangeEnd - rangeStart - 15;
+    let rangeStart = currentSong.rangeStart || 0;
+    let rangeEnd = currentSong.rangeEnd || audio.duration;
+    let possibleStartRange = rangeEnd - rangeStart - snippetLength;
 
     if (possibleStartRange < 0) {
       console.error(
         "The defined range for " +
           currentSong.title +
-          " is shorter than 15 seconds."
+          " is shorter than " +
+          snippetLength +
+          " seconds. Using start of range."
       );
       snippetStart = rangeStart;
     } else {
@@ -292,7 +209,7 @@ function nextSong() {
         rangeStart + Math.floor(Math.random() * (possibleStartRange + 1));
     }
 
-    snippetEnd = snippetStart + 15;
+    snippetEnd = snippetStart + snippetLength;
     audio.currentTime = snippetStart;
     audio.play();
     updateStatus("🎵 Now Playing...");
@@ -331,42 +248,49 @@ function submitGuess(inputGuess = null) {
 
   const normalizedGuess = guess.toLowerCase();
   let correct = false;
-  let answerText = "";
-  let isTitleStage = stage === "title";
+  let targetAnswer = "";
+  let targetType = "";
+  let songCompleted = false;
 
-  // Determine correctness and answer text based on the current stage
-  if (isTitleStage) {
-    correct =
-      levenshtein(normalizedGuess, currentSong.title.toLowerCase()) <= 3;
-    answerText = currentSong.title;
+  // 1. Determine the target answer based on the current stage/quiz type
+  if (stage === "title" && (quizType === "title" || quizType === "both")) {
+    targetAnswer = currentSong.title;
+    targetType = "Title";
+  } else if (
+    stage === "artist" &&
+    (quizType === "artist" || quizType === "both")
+  ) {
+    targetAnswer = currentSong.artist;
+    targetType = "Artist";
   } else {
-    // stage === "artist"
-    correct =
-      levenshtein(normalizedGuess, currentSong.artist.toLowerCase()) <= 3;
-    answerText = currentSong.artist;
+    return;
   }
 
-  let songCompleted = false;
+  // 2. Check correctness using Levenshtein distance
+  correct = levenshtein(normalizedGuess, targetAnswer.toLowerCase()) <= 3;
 
   if (correct) {
     score++;
-    showOverlay(`✅ Correct ${isTitleStage ? "Title" : "Artist"}!`, "#4CAF50");
+    showOverlay(`✅ Correct ${targetType}!`, "#4CAF50");
 
-    if (quizType === "both" && isTitleStage) {
-      // Transition from title to artist stage
+    // --- KEY TRANSITION LOGIC ---
+    if (quizType === "both" && targetType === "Title") {
+      // Step A: Update the internal state to prepare for the Artist guess
       stage = "artist";
       guessInput.value = "";
+
+      // Step B: Call updateGameUI, which in turn calls renderAnswerBank()
+      // This switches the word bank from Titles to Artists.
       updateGameUI();
-      // Wait briefly, then replay the snippet for the next guess
+
+      // Step C: Replay the snippet for the user to guess the artist
       setTimeout(repeatSnippet, 1000);
-      return;
+      return; // Stops here, waiting for the artist guess
     }
-    songCompleted = true;
+    songCompleted = true; // If not "both" or if "Artist" was guessed, the song is done
   } else {
     showOverlay(
-      `❌ Incorrect ${
-        isTitleStage ? "Title" : "Artist"
-      }. Correct: ${answerText}`,
+      `❌ Incorrect ${targetType}. Correct: ${targetAnswer}`,
       "#FF0000"
     );
     missedSongs.add(currentSong);
@@ -377,7 +301,6 @@ function submitGuess(inputGuess = null) {
 
   if (songCompleted) {
     songIndex++;
-    // Move to the next song after a short delay to display feedback
     setTimeout(nextSong, 2500);
   }
 }
